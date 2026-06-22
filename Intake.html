@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyond Mars — Word deel van ons team</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bm-red:#E8372A;--bm-navy:#0D1B2A;
+  --bg:#F7F6F3;--bg2:#fff;--bg3:#F0EFE9;
+  --text:#1A1A1A;--text2:#555;--text3:#999;
+  --border:#DDD;--border2:#BBB;
+  --success-bg:#EAF3DE;--success-text:#27500A;
+  --danger-bg:#FCEBEB;--danger-text:#791F1F;
+  --warn-bg:#FAEEDA;--warn-text:#633806;
+  --info-bg:#E6F1FB;--info-text:#0C447C;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh}
+input,select,textarea{font-family:inherit;font-size:14px;width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--bm-red);box-shadow:0 0 0 3px rgba(232,55,42,.1)}
+textarea{resize:vertical;min-height:90px}
+label.field-label{font-size:13px;color:var(--text2);display:block;margin-bottom:5px;font-weight:500}
+.field{margin-bottom:16px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:500px){.field-row{grid-template-columns:1fr}}
+.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:24px 28px}
+@media(max-width:500px){.card{padding:18px 16px}}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:9px;border:1px solid var(--border2);background:#fff;color:var(--text);font-size:14px;font-weight:500;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn:hover{background:var(--bg3);border-color:var(--border2)}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--bm-red);color:#fff;border-color:var(--bm-red)}
+.btn-primary:hover{background:#c52d22;border-color:#c52d22}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-ghost:hover{background:var(--bg3)}
+.btn-sm{padding:6px 14px;font-size:13px}
+.step-bar{display:flex;gap:6px;align-items:center;margin-bottom:24px}
+.step-dot{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:var(--text3);flex-shrink:0;transition:all .2s}
+.step-dot.done{background:var(--bm-red);color:#fff;border-color:var(--bm-red)}
+.step-dot.active{border-color:var(--bm-red);color:var(--bm-red);font-weight:700}
+.step-line{flex:1;height:2px;background:var(--border);border-radius:1px;transition:background .2s}
+.step-line.done{background:var(--bm-red)}
+.radio-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.radio-opt{display:flex;align-items:center;gap:7px;padding:7px 14px;border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:13px;transition:all .15s;user-select:none}
+.radio-opt:hover{background:var(--bg3)}
+.radio-opt.selected{border-color:var(--bm-red);background:#FFF5F5;color:var(--bm-red);font-weight:500}
+.radio-opt input[type=radio]{display:none}
+.lang-grid{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:8px 12px;margin-top:8px}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-name{text-align:center;font-size:11px;color:var(--text3);padding:4px 0;font-weight:500}
+.cal-day{text-align:center;padding:8px 4px;border-radius:7px;font-size:13px;cursor:pointer;border:1px solid transparent;transition:all .12s}
+.cal-day:hover{background:var(--bg3)}
+.cal-day.available{border-color:var(--border)}
+.cal-day.selected{background:var(--bm-red);color:#fff;border-color:var(--bm-red)}
+.cal-day.disabled{color:var(--text3);cursor:default;opacity:.4}
+.cal-day.full{color:var(--text3);cursor:default;background:var(--bg3);border-color:var(--border)}
+.time-slot{padding:8px 16px;border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;transition:all .12s;display:flex;flex-direction:column;gap:2px}
+.time-slot:hover{background:var(--bg3)}
+.time-slot.selected{background:var(--bm-red);color:#fff;border-color:var(--bm-red)}
+.time-slot.full{opacity:.4;cursor:not-allowed;background:var(--bg3)}
+.time-slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:10px}
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;background:var(--bg3);transition:border-color .15s}
+.upload-zone:hover{border-color:var(--bm-red)}
+.upload-zone.has-file{border-color:var(--bm-red);background:#FFF5F5}
+.main-wrap{max-width:640px;margin:0 auto;padding:28px 16px 60px}
+.divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+.form-header{text-align:center;margin-bottom:28px}
+.form-header .logo{display:block;margin-bottom:10px;font-size:17px;font-weight:700;color:var(--bm-red)}
+.form-header h1{font-size:21px;font-weight:700;margin-bottom:6px}
+.form-header p{font-size:14px;color:var(--text2)}
+.success-screen{text-align:center;padding:50px 20px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bm-navy);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200;white-space:nowrap}
+.toast.show{opacity:1}
+.div-card{border:1px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;transition:all .15s;display:flex;gap:14px;align-items:flex-start}
+.div-card:hover{background:var(--bg3);border-color:var(--border2)}
+.div-card.selected{border-color:var(--bm-red);background:#FFF5F5}
+.div-card .div-icon{font-size:26px;flex-shrink:0;margin-top:2px}
+.div-card .div-title{font-weight:600;font-size:14px;margin-bottom:3px}
+.div-card .div-desc{font-size:12px;color:var(--text2);line-height:1.5}
+.div-card.selected .div-title{color:var(--bm-red)}
+.spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.session-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:var(--info-bg);color:var(--info-text)}
+.session-badge.full{background:var(--bg3);color:var(--text3)}
+</style>
+</head>
+<body>
+
+<div class="main-wrap">
+  <div id="app-content"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIG — pas deze URL aan na het deployen van Apps Script
+// ============================================================
+const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/beyondmars.be/s/AKfycbxpYzW5RgqBnaGk5hBKwSVOaTDeE8B3KH0RtJZlElRT0A4tH-9qUObGeT0H3Zzxys7Oeg/exec';
+// ============================================================
+
+const LANGS=['Nederlands','Frans','Engels','Duits'];
+const LEVELS=['Geen','Basis','Goed','Vloeiend'];
+const DIPLOMAS=['Geen diploma','Lager onderwijs','Lager secundair','Hoger secundair','Bachelor','Master','Andere'];
+const DAY_NAMES=['Ma','Di','Wo','Do','Vr','Za','Zo'];
+
+const DIVISIONS=[
+  {id:'smile',label:'Beyond the Smile',icon:'😊',desc:'Gastheer/gastvrouw, receptie, eventbegeleiding. Je bent het gezicht van het evenement.'},
+  {id:'serve',label:'Serve',icon:'🍽️',desc:'Bediening, catering, banqueting. Je zorgt voor een perfecte gastronomische beleving.'},
+  {id:'stage',label:'Stage',icon:'🎬',desc:'Techniek, productie, backstage. Je zorgt dat alles achter de schermen vlekkeloos loopt.'}
+];
+
+let step=1;
+let fd={};
+let sessions=[];
+let selSession=null;
+let calMonth=new Date().getMonth();
+let calYear=new Date().getFullYear();
+let submitting=false;
+
+function e(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+
+async function loadSessions(){
+  if(!fd.div)return;
+  try{
+    const r=await fetch(`${APPS_SCRIPT_URL}?action=getSessions&div=${fd.div}`);
+    const d=await r.json();
+    sessions=d.sessions||[];
+  }catch(err){
+    sessions=[];
+  }
+  render();
+}
+
+function stepBar(){
+  const labels=['Basisinfo','Opleiding','Praktisch','Motivatie','Foto & CV','Afspraak'];
+  let h='<div class="step-bar">';
+  for(let i=1;i<=6;i++){
+    const cls=i<step?'done':i===step?'active':'';
+    if(i>1)h+=`<div class="step-line${i<=step?' done':''}"></div>`;
+    h+=`<div class="step-dot ${cls}">${i<step?'✓':i}</div>`;
+  }
+  return h+'</div>';
+}
+
+function radioGroup(name,options,val,fn){
+  return `<div class="radio-group">${options.map(o=>`
+    <div class="radio-opt${val===o?' selected':''}" onclick="${fn}('${o.replace(/'/g,"\\'")}')">
+      <input type="radio" name="${name}"${val===o?' checked':''}> ${o}
+    </div>`).join('')}</div>`;
+}
+
+function validateStep(){
+  if(step===1)return fd.fn&&fd.ln&&fd.dob&&fd.email&&fd.gsm&&fd.city&&fd.privacy;
+  if(step===4)return fd.div&&(fd.motivation||'').length>=10;
+  if(step===5)return !!fd.photoName;
+  if(step===6)return !!selSession;
+  return true;
+}
+
+function renderForm(){
+  let body='';
+
+  if(step===1){
+    body=`
+    <div class="form-header">
+      <span class="logo">Beyond Mars</span>
+      <h1>Word deel van ons team</h1>
+      <p>Vul je gegevens in — duurt ongeveer 5 minuten.</p>
+    </div>
+    ${stepBar()}
+    <div class="field-row">
+      <div class="field"><label class="field-label">Voornaam *</label><input value="${e(fd.fn)}" oninput="fd.fn=this.value" placeholder="Jan"></div>
+      <div class="field"><label class="field-label">Achternaam *</label><input value="${e(fd.ln)}" oninput="fd.ln=this.value" placeholder="Janssen"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="field-label">Geboortedatum *</label><input type="date" value="${e(fd.dob)}" oninput="fd.dob=this.value"></div>
+      <div class="field"><label class="field-label">Geslacht</label>${radioGroup('gender',['Vrouw','Man','Andere'],fd.gender,'setGender')}</div>
+    </div>
+    <div class="field"><label class="field-label">E-mailadres *</label><input type="email" value="${e(fd.email)}" oninput="fd.email=this.value" placeholder="jan@voorbeeld.be"></div>
+    <div class="field"><label class="field-label">GSM-nummer *</label><input type="tel" value="${e(fd.gsm)}" oninput="fd.gsm=this.value" placeholder="+32 4XX XX XX XX"></div>
+    <div class="field-row">
+      <div class="field"><label class="field-label">Gemeente *</label><input value="${e(fd.city)}" oninput="fd.city=this.value" placeholder="Gent"></div>
+      <div class="field"><label class="field-label">Nationaliteit</label><input value="${e(fd.nat)}" oninput="fd.nat=this.value" placeholder="Belgisch"></div>
+    </div>
+    <div class="field">
+      <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;font-size:13px;color:var(--text2);padding:10px 14px;border:1px solid ${fd.privacy?'var(--bm-red)':'var(--border)'};border-radius:9px;background:${fd.privacy?'#FFF5F5':'#fff'}">
+        <input type="checkbox" style="width:auto;margin-top:2px;accent-color:var(--bm-red)" ${fd.privacy?'checked':''} onchange="fd.privacy=this.checked;render()">
+        Ik ga akkoord dat mijn gegevens maximaal 6 maanden bewaard worden voor recruitmentdoeleinden door Beyond Mars.
+      </label>
+    </div>`;
+  }
+
+  if(step===2){
+    body=`
+    <div class="form-header"><h1>Opleiding &amp; ervaring</h1><p>Stap 2 van 6</p></div>
+    ${stepBar()}
+    <div class="field"><label class="field-label">Hoogst behaald diploma</label>
+      <select onchange="fd.diploma=this.value">${DIPLOMAS.map(d=>`<option${fd.diploma===d?' selected':''}>${d}</option>`).join('')}</select>
+    </div>
+    <div class="field"><label class="field-label">Studierichting / vakgebied</label><input value="${e(fd.studyfield)}" oninput="fd.studyfield=this.value" placeholder="bv. Hotelbeheer, Toerisme…"></div>
+    <div class="field"><label class="field-label">Huidige of laatste job</label><input value="${e(fd.lastjob)}" oninput="fd.lastjob=this.value" placeholder="bv. Kelner bij Restaurant X"></div>
+    <div class="field"><label class="field-label">Werkervaring (kort)</label><textarea oninput="fd.experience=this.value" placeholder="Beschrijf kort je relevante ervaring in events of catering…">${e(fd.experience)}</textarea></div>
+    <div class="field"><label class="field-label">Burgerlijke staat</label>${radioGroup('civil',['Alleenstaand','Samenwonend','Getrouwd'],fd.civil,'setCivil')}</div>
+    <div class="field"><label class="field-label">Kinderen</label>${radioGroup('kids',['Geen kinderen','Kinderen'],fd.kids,'setKids')}</div>`;
+  }
+
+  if(step===3){
+    body=`
+    <div class="form-header"><h1>Praktisch</h1><p>Stap 3 van 6</p></div>
+    ${stepBar()}
+    <div class="field"><label class="field-label">Rijbewijs</label>${radioGroup('lic',['Geen','B','B + aanhangwagen','C/D'],fd.license,'setLicense')}</div>
+    <div class="field"><label class="field-label">Eigen wagen</label>${radioGroup('car',['Ja','Nee'],fd.car,'setCar')}</div>
+    <div class="field"><label class="field-label">Talenkennis</label>
+      <div class="lang-grid">
+        ${LANGS.map((l,i)=>`
+          <span style="font-size:13px;font-weight:500">${l}</span>
+          <select onchange="setLang(${i},this.value)">${LEVELS.map(lv=>`<option${(fd.langs&&fd.langs[i]===lv)||(!fd.langs&&lv==='Geen')?' selected':''}>${lv}</option>`).join('')}</select>
+        `).join('')}
+      </div>
+    </div>
+    <div class="field"><label class="field-label">Zichtbare tatoeages of piercings</label>${radioGroup('tat',['Nee','Ja (bedekbaar)','Ja (niet bedekbaar)'],fd.tattoo,'setTattoo')}</div>`;
+  }
+
+  if(step===4){
+    const motLen=(fd.motivation||'').length;
+    body=`
+    <div class="form-header"><h1>Motivatie &amp; voorkeur</h1><p>Stap 4 van 6</p></div>
+    ${stepBar()}
+    <div class="field">
+      <label class="field-label">In welke divisie wil je werken? *</label>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Kies de divisie die het beste bij jou past.</p>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${DIVISIONS.map(d=>`
+          <div class="div-card${fd.div===d.id?' selected':''}" onclick="setDiv('${d.id}')">
+            <div class="div-icon">${d.icon}</div>
+            <div>
+              <div class="div-title">${d.label}</div>
+              <div class="div-desc">${d.desc}</div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="field"><label class="field-label">Motivatie <span style="font-weight:400;color:var(--text3)">(min 10, max 300 tekens)</span></label>
+      <textarea maxlength="300" oninput="fd.motivation=this.value;document.getElementById('mot-count').textContent=this.value.length" placeholder="Waarom wil je bij Beyond Mars werken? Wat maakt jou een goede kandidaat?">${e(fd.motivation)}</textarea>
+      <div style="font-size:12px;color:var(--text3);text-align:right;margin-top:3px"><span id="mot-count">${motLen}</span>/300</div>
+    </div>
+    <div class="field"><label class="field-label">Hoe heb je ons gevonden?</label>
+      <select onchange="fd.source=this.value">
+        ${['Kies een optie','Student job website','Instagram / Facebook','Via een vriend(in)','School of instelling','Google','Andere'].map(s=>`<option${fd.source===s?' selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>`;
+  }
+
+  if(step===5){
+    body=`
+    <div class="form-header"><h1>Foto &amp; CV</h1><p>Stap 5 van 6</p></div>
+    ${stepBar()}
+    <div class="field">
+      <label class="field-label">Profielfoto *</label>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px">Gebruik een professionele foto op neutrale achtergrond.</p>
+      <div class="upload-zone${fd.photoName?' has-file':''}" onclick="document.getElementById('photoInput').click()">
+        ${fd.photoName
+          ?`<div style="font-size:24px;margin-bottom:6px">📷</div><div style="font-size:13px;color:var(--bm-red);font-weight:500">${fd.photoName}</div><div style="font-size:12px;color:var(--text3);margin-top:3px">Klik om te wijzigen</div>`
+          :`<div style="font-size:28px;margin-bottom:8px;opacity:.4">⬆</div><div style="font-size:14px;color:var(--text2)">Klik om foto te uploaden</div><div style="font-size:12px;color:var(--text3);margin-top:4px">JPG of PNG · max 5 MB</div>`}
+      </div>
+      <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+    </div>
+    <div class="field">
+      <label class="field-label">CV <span style="font-weight:400;color:var(--text3)">(optioneel)</span></label>
+      <div class="upload-zone${fd.cvName?' has-file':''}" onclick="document.getElementById('cvInput').click()">
+        ${fd.cvName
+          ?`<div style="font-size:24px;margin-bottom:6px">📄</div><div style="font-size:13px;color:var(--bm-red);font-weight:500">${fd.cvName}</div>`
+          :`<div style="font-size:28px;margin-bottom:8px;opacity:.4">📎</div><div style="font-size:14px;color:var(--text2)">CV uploaden</div><div style="font-size:12px;color:var(--text3);margin-top:4px">PDF of Word</div>`}
+      </div>
+      <input type="file" id="cvInput" accept=".pdf,.doc,.docx" style="display:none" onchange="handleCV(this)">
+    </div>`;
+  }
+
+  if(step===6){
+    const divLabel=DIVISIONS.find(d=>d.id===fd.div)?.label||'';
+    const isServe=fd.div==='serve';
+
+    let sessionsHtml='';
+    if(sessions.length===0){
+      sessionsHtml=`<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;background:var(--bg3);border-radius:9px">
+        Momenteel zijn er geen beschikbare sessies. We nemen contact met je op.
+      </div>`;
+    } else {
+      sessionsHtml=`<div class="time-slots-grid">
+        ${sessions.map(s=>{
+          const isFull=s.booked>=s.capacity;
+          const isSel=selSession===s.id;
+          const spots=s.capacity-s.booked;
+          return `<div class="time-slot${isSel?' selected':''}${isFull?' full':''}" onclick="${!isFull?`selSession='${s.id}';render()`:''}" title="${isFull?'Volzet':''}">
+            <span style="font-weight:600">${e(s.date)} · ${e(s.time)}</span>
+            ${isServe?`<span style="font-size:11px;opacity:.8">${isFull?'Volzet':`${spots} plaats${spots===1?'':'en'} vrij`}</span>`:''}
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+
+    body=`
+    <div class="form-header"><h1>Kies een moment</h1><p>Stap 6 van 6 · ${divLabel}</p></div>
+    ${stepBar()}
+    <div class="field">
+      <label class="field-label">${isServe?'Kies een groepssessie (1,5u)':'Kies een tijdslot (30 min)'}</label>
+      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">
+        ${isServe
+          ?'Selecteer een opleiding. Sessies met vrije plaatsen worden getoond.'
+          :'Selecteer een moment voor je persoonlijk gesprek.'}
+      </p>
+      ${sessions.length>0?sessionsHtml:`<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px">
+        <div style="font-size:28px;margin-bottom:8px">⏳</div>
+        Beschikbare momenten worden geladen…
+      </div>`}
+    </div>`;
+
+    if(sessions.length===0 && APPS_SCRIPT_URL==='JOUW_APPS_SCRIPT_URL_HIER'){
+      // demo mode — toon dummy slots
+      sessions=[
+        {id:'s1',date:'Ma 30 jun',time:'09:00',capacity:1,booked:0},
+        {id:'s2',date:'Di 1 jul',time:'10:30',capacity:isServe?10:1,booked:isServe?3:0},
+        {id:'s3',date:'Wo 2 jul',time:'14:00',capacity:isServe?10:1,booked:isServe?10:0},
+        {id:'s4',date:'Do 3 jul',time:'15:30',capacity:isServe?10:1,booked:isServe?7:0},
+      ];
+      render();return;
+    }
+  }
+
+  const ok=validateStep();
+  const isLast=step===6;
+
+  document.getElementById('app-content').innerHTML=`
+    <div class="card">
+      ${body}
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;gap:10px">
+        ${step>1?`<button class="btn" onclick="prevStep()">&#8592; Vorige</button>`:`<span></span>`}
+        <button class="btn btn-primary" id="next-btn" onclick="${isLast?'submitForm()':'nextStep()'}" ${!ok?'disabled style="opacity:.5;cursor:not-allowed"':''}>
+          ${isLast
+            ?`${submitting?'<span class="spinner"></span> Bezig…':'Aanmelding versturen &#10148;'}`
+            :'Volgende &#8594;'}
+        </button>
+      </div>
+    </div>`;
+}
+
+function prevStep(){step--;render();}
+function nextStep(){
+  if(!validateStep()||step>=6)return;
+  step++;
+  if(step===6)loadSessions();
+  else render();
+}
+
+async function submitForm(){
+  if(submitting)return;
+  submitting=true;render();
+
+  const langs={};
+  LANGS.forEach((l,i)=>{langs[l]=(fd.langs&&fd.langs[i])||'Geen';});
+
+  const payload={
+    action:'submit',
+    fn:fd.fn,ln:fd.ln,dob:fd.dob||'',gender:fd.gender||'',
+    email:fd.email,gsm:fd.gsm,city:fd.city,nat:fd.nat||'',
+    diploma:fd.diploma||'',studyfield:fd.studyfield||'',
+    lastjob:fd.lastjob||'',experience:fd.experience||'',
+    civil:fd.civil||'',kids:fd.kids||'',
+    license:fd.license||'',car:fd.car||'',
+    langs:JSON.stringify(langs),tattoo:fd.tattoo||'',
+    div:fd.div||'',motivation:fd.motivation||'',source:fd.source||'',
+    photoName:fd.photoName||'',cvName:fd.cvName||'',
+    photoData:fd.photoData||'',
+    sessionId:selSession||''
+  };
+
+  try{
+    if(APPS_SCRIPT_URL==='JOUW_APPS_SCRIPT_URL_HIER'){
+      // Demo mode
+      await new Promise(r=>setTimeout(r,1200));
+      renderSuccess();return;
+    }
+    await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
+    renderSuccess();
+  }catch(err){
+    submitting=false;
+    showToast('Er liep iets mis. Probeer opnieuw.');
+    render();
+  }
+}
+
+function renderSuccess(){
+  const divLabel=DIVISIONS.find(d=>d.id===fd.div)?.label||'';
+  document.getElementById('app-content').innerHTML=`
+    <div class="card" style="text-align:center;padding:50px 28px">
+      <div style="font-size:56px;margin-bottom:16px">✅</div>
+      <h2 style="font-size:22px;font-weight:700;margin-bottom:10px">Aanmelding ontvangen!</h2>
+      <p style="color:var(--text2);font-size:14px;max-width:380px;margin:0 auto 12px">
+        Bedankt ${e(fd.fn)}! We bekijken je dossier voor <strong>${divLabel}</strong> en laten je weten via e-mail of je uitgenodigd wordt.
+      </p>
+      <p style="color:var(--text3);font-size:13px;max-width:360px;margin:0 auto">
+        Controleer ook je spamfolder. Je ontvangt een bevestigingsmail op <strong>${e(fd.email)}</strong>.
+      </p>
+    </div>`;
+}
+
+function handlePhoto(input){
+  const file=input.files[0];if(!file)return;
+  fd.photoName=file.name;
+  const reader=new FileReader();
+  reader.onload=e=>{fd.photoData=e.target.result;render();};
+  reader.readAsDataURL(file);
+}
+function handleCV(input){fd.cvName=input.files[0]?.name;render();}
+
+function setGender(v){fd.gender=v;render();}
+function setCivil(v){fd.civil=v;render();}
+function setKids(v){fd.kids=v;render();}
+function setLicense(v){fd.license=v;render();}
+function setCar(v){fd.car=v;render();}
+function setTattoo(v){fd.tattoo=v;render();}
+function setDiv(v){fd.div=v;render();}
+function setLang(i,v){if(!fd.langs)fd.langs=LANGS.map(()=>'Geen');fd.langs[i]=v;}
+
+renderForm();
+
+function render(){renderForm();}
+</script>
+</body>
+</html>

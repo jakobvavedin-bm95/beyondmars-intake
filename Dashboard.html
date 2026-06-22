@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyond Mars — Intern Dashboard</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bm-red:#E8372A;--bm-navy:#0D1B2A;
+  --bg:#F7F6F3;--bg2:#fff;--bg3:#F0EFE9;
+  --text:#1A1A1A;--text2:#555;--text3:#999;
+  --border:#DDD;--border2:#BBB;
+  --success-bg:#EAF3DE;--success-text:#27500A;
+  --danger-bg:#FCEBEB;--danger-text:#791F1F;
+  --warn-bg:#FAEEDA;--warn-text:#633806;
+  --info-bg:#E6F1FB;--info-text:#0C447C;
+  --sidebar-w:220px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+input,select,textarea{font-family:inherit;font-size:14px;width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:#fff;color:var(--text);outline:none;transition:border-color .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--bm-red);box-shadow:0 0 0 3px rgba(232,55,42,.1)}
+textarea{resize:vertical;min-height:80px}
+
+/* Layout */
+.app{display:flex;min-height:100vh}
+.sidebar{width:var(--sidebar-w);background:var(--bm-navy);color:#fff;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;z-index:10}
+.main{margin-left:var(--sidebar-w);flex:1;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:5}
+.content{padding:24px}
+
+/* Sidebar */
+.sidebar-logo{padding:20px 18px 16px;font-size:16px;font-weight:700;color:#fff;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-logo span{color:var(--bm-red)}
+.sidebar-section{padding:14px 12px 6px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.35)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;border-radius:8px;margin:2px 6px;cursor:pointer;font-size:13px;font-weight:500;color:rgba(255,255,255,.65);transition:all .15s;border:none;background:none;width:calc(100% - 12px);text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(232,55,42,.25);color:#fff}
+.nav-item .nav-icon{font-size:15px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--bm-red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
+.nav-badge.warn{background:var(--warn-text)}
+.sidebar-bottom{margin-top:auto;padding:14px 6px;border-top:1px solid rgba(255,255,255,.1)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:1px solid var(--border2);background:#fff;color:var(--text);font-size:13px;font-weight:500;cursor:pointer;transition:all .12s;white-space:nowrap}
+.btn:hover{background:var(--bg3)}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--bm-red);color:#fff;border-color:var(--bm-red)}
+.btn-primary:hover{background:#c52d22;border-color:#c52d22}
+.btn-success{background:#27500A;color:#fff;border-color:#27500A}
+.btn-success:hover{background:#1e3c07}
+.btn-danger{background:#fff;color:var(--danger-text);border-color:#F09595}
+.btn-danger:hover{background:var(--danger-bg)}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-ghost:hover{background:var(--bg3)}
+.btn-icon{padding:7px;border-radius:7px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-review{background:var(--warn-bg);color:var(--warn-text)}
+.badge-uitgenodigd{background:var(--success-bg);color:var(--success-text)}
+.badge-afgewezen{background:var(--danger-bg);color:var(--danger-text)}
+.badge-div-smile{background:#FEF3C7;color:#92400E}
+.badge-div-serve{background:#E0F2FE;color:#075985}
+.badge-div-stage{background:#F3E8FF;color:#6B21A8}
+
+/* Cards & tables */
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.stat-num{font-size:26px;font-weight:700;line-height:1}
+.stat-label{font-size:11px;color:var(--text2);margin-top:4px}
+.cand-row{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--border)}
+.cand-row:last-child{border-bottom:none}
+.cand-row:hover{background:var(--bg3)}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.avatar-smile{background:#FEF3C7;color:#92400E}
+.avatar-serve{background:#E0F2FE;color:#075985}
+.avatar-stage{background:#F3E8FF;color:#6B21A8}
+.detail-table{width:100%;border-collapse:collapse;font-size:13px}
+.detail-table td{padding:7px 0;border-bottom:1px solid var(--border);vertical-align:top}
+.detail-table td:first-child{color:var(--text2);width:140px;font-weight:500;padding-right:12px}
+.detail-table tr:last-child td{border-bottom:none}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;z-index:100;overflow-y:auto}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:560px;padding:26px;box-shadow:0 8px 40px rgba(0,0,0,.18)}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bm-navy);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:300;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* Misc */
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+.search-wrap{position:relative;flex:1;min-width:160px;max-width:300px}
+.search-wrap input{padding-left:32px;font-size:13px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty-state .empty-icon{font-size:36px;margin-bottom:10px}
+.info-box{background:var(--success-bg);border-radius:9px;padding:12px 14px;font-size:13px;color:var(--success-text);margin-top:10px}
+.warn-box{background:var(--danger-bg);border-radius:9px;padding:12px 14px;font-size:13px;color:var(--danger-text);margin-top:10px}
+.reject-area{background:var(--bg3);border-radius:9px;padding:14px;margin-top:12px;display:none}
+.section-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.section-sub{font-size:13px;color:var(--text2)}
+
+/* Login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bm-navy)}
+.login-card{background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:360px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.25)}
+
+/* Sessions manager */
+.session-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:9px;border:1px solid var(--border);margin-bottom:8px;font-size:13px}
+.session-bar{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.session-bar-fill{height:100%;background:var(--bm-red);border-radius:3px;transition:width .3s}
+
+/* Tabs */
+.tab-bar{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 18px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;background:none;border-top:none;border-left:none;border-right:none}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--bm-red);border-bottom-color:var(--bm-red)}
+
+@media(max-width:680px){
+  .sidebar{display:none}
+  .main{margin-left:0}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/beyondmars.be/s/AKfycbxpYzW5RgqBnaGk5hBKwSVOaTDeE8B3KH0RtJZlElRT0A4tH-9qUObGeT0H3Zzxys7Oeg/exec';
+const DASHBOARD_PASSWORD = 'beyondmars2025'; // ← aanpassen
+// ============================================================
+
+const DIV_META={
+  smile:{label:'Beyond the Smile',icon:'😊',color:'smile'},
+  serve:{label:'Serve',icon:'🍽️',color:'serve'},
+  stage:{label:'Stage',icon:'🎬',color:'stage'}
+};
+const STATUS_META={
+  review:{label:'Review',cls:'badge-review'},
+  uitgenodigd:{label:'Uitgenodigd',cls:'badge-uitgenodigd'},
+  afgewezen:{label:'Afgewezen',cls:'badge-afgewezen'}
+};
+
+let loggedIn=sessionStorage.getItem('bm_auth')==='1';
+let activeDiv=null; // null=all, 'smile','serve','stage'
+let activeStatus=null; // null=all, 'review','uitgenodigd','afgewezen'
+let activeTab='kandidaten'; // 'kandidaten' | 'sessies'
+let search='';
+let candidates=[];
+let sessions=[];
+let loading=false;
+let selId=null;
+
+function e(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showToast(msg,dur=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function initials(fn,ln){return((fn||'')[0]+(ln||'')[0]).toUpperCase()||'?'}
+
+// ---- DATA ----
+async function fetchData(){
+  loading=true;render();
+  try{
+    if(APPS_SCRIPT_URL==='JOUW_APPS_SCRIPT_URL_HIER'){
+      // Demo data
+      await new Promise(r=>setTimeout(r,400));
+      candidates=DEMO_CANDIDATES;
+      sessions=DEMO_SESSIONS;
+    } else {
+      const r=await fetch(`${APPS_SCRIPT_URL}?action=getData`);
+      const d=await r.json();
+      candidates=d.candidates||[];
+      sessions=d.sessions||[];
+    }
+  }catch(err){showToast('Verbindingsfout — demo data geladen');candidates=DEMO_CANDIDATES;sessions=DEMO_SESSIONS;}
+  loading=false;render();
+}
+
+async function updateStatus(id,status,reason='',sessionId=''){
+  try{
+    if(APPS_SCRIPT_URL!=='JOUW_APPS_SCRIPT_URL_HIER'){
+      await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'updateStatus',id,status,reason,sessionId})});
+    }
+    const c=candidates.find(x=>x.id===id);
+    if(c){c.status=status;if(reason)c.rejectionReason=reason;if(sessionId)c.sessionId=sessionId;}
+    showToast(status==='uitgenodigd'?'✓ Uitnodiging verstuurd via hello@beyondmars.be':'Kandidaat afgewezen — mail verstuurd');
+    closeModal();render();
+  }catch(err){showToast('Fout bij opslaan');}
+}
+
+async function addSession(data){
+  try{
+    if(APPS_SCRIPT_URL!=='JOUW_APPS_SCRIPT_URL_HIER'){
+      const r=await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'addSession',...data})});
+      const d=await r.json();
+      sessions.push(d.session);
+    } else {
+      sessions.push({id:'s'+Date.now(),div:data.div,date:data.date,time:data.time,capacity:parseInt(data.capacity),booked:0,duration:data.duration});
+    }
+    showToast('Sessie toegevoegd');render();
+  }catch(err){showToast('Fout bij opslaan');}
+}
+
+async function deleteSession(id){
+  if(!confirm('Sessie verwijderen?'))return;
+  sessions=sessions.filter(s=>s.id!==id);
+  if(APPS_SCRIPT_URL!=='JOUW_APPS_SCRIPT_URL_HIER'){
+    await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'deleteSession',id})});
+  }
+  showToast('Sessie verwijderd');render();
+}
+
+// ---- COUNTS ----
+function counts(){
+  const res={total:0,review:0,uitgenodigd:0,afgewezen:0,smile:0,serve:0,stage:0};
+  candidates.forEach(c=>{
+    res.total++;
+    if(c.status in res)res[c.status]++;
+    if(c.div in res)res[c.div]++;
+  });
+  return res;
+}
+
+function filteredCandidates(){
+  let list=candidates;
+  if(activeDiv)list=list.filter(c=>c.div===activeDiv);
+  if(activeStatus)list=list.filter(c=>c.status===activeStatus);
+  if(search){const q=search.toLowerCase();list=list.filter(c=>`${c.fn} ${c.ln} ${c.email} ${c.city}`.toLowerCase().includes(q));}
+  return list;
+}
+
+// ---- RENDER ----
+function render(){
+  if(!loggedIn){renderLogin();return;}
+  const root=document.getElementById('root');
+  root.innerHTML=`
+    <div class="app">
+      ${renderSidebar()}
+      <div class="main">
+        ${renderTopbar()}
+        <div class="content">
+          ${loading?renderLoading():activeTab==='sessies'?renderSessions():renderKandidaten()}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderLogin(){
+  document.getElementById('root').innerHTML=`
+    <div class="login-wrap">
+      <div class="login-card">
+        <div style="font-size:28px;font-weight:700;color:var(--bm-red);margin-bottom:4px">Beyond Mars</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:28px">Intern dashboard</div>
+        <div class="field" style="margin-bottom:16px;text-align:left">
+          <label style="font-size:12px;color:var(--text2);font-weight:500;display:block;margin-bottom:5px">Wachtwoord</label>
+          <input type="password" id="pw-input" placeholder="Voer wachtwoord in" onkeydown="if(event.key==='Enter')tryLogin()">
+        </div>
+        <div id="pw-error" style="color:var(--bm-red);font-size:12px;margin-bottom:10px;display:none">Ongeldig wachtwoord</div>
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="tryLogin()">Inloggen</button>
+      </div>
+    </div>`;
+  setTimeout(()=>document.getElementById('pw-input')?.focus(),50);
+}
+
+function tryLogin(){
+  const pw=document.getElementById('pw-input')?.value;
+  if(pw===DASHBOARD_PASSWORD){sessionStorage.setItem('bm_auth','1');loggedIn=true;fetchData();}
+  else{document.getElementById('pw-error').style.display='block';}
+}
+
+function renderLoading(){
+  return `<div style="text-align:center;padding:60px;color:var(--text3)"><div style="font-size:28px;margin-bottom:10px">⏳</div>Data laden…</div>`;
+}
+
+function renderSidebar(){
+  const c=counts();
+  function navItem(div,status,label,badge){
+    const isActive=activeDiv===div&&activeStatus===status;
+    return `<button class="nav-item${isActive?' active':''}" onclick="setFilter('${div||''}','${status||''}')">
+      <span>${label}</span>
+      ${badge!=null?`<span class="nav-badge${status==='review'?' warn':''}">${badge}</span>`:''}
+    </button>`;
+  }
+  return `<div class="sidebar">
+    <div class="sidebar-logo">Beyond <span>Mars</span></div>
+
+    <div class="sidebar-section">Overzicht</div>
+    ${navItem(null,null,'Alle kandidaten',c.total)}
+    ${navItem(null,'review','In review',c.review)}
+
+    <div class="sidebar-section">Beyond the Smile 😊</div>
+    ${navItem('smile',null,'Alle Smile',c.smile)}
+    ${navItem('smile','review','Review',candidates.filter(x=>x.div==='smile'&&x.status==='review').length||null)}
+    ${navItem('smile','uitgenodigd','Uitgenodigd',null)}
+
+    <div class="sidebar-section">Serve 🍽️</div>
+    ${navItem('serve',null,'Alle Serve',c.serve)}
+    ${navItem('serve','review','Review',candidates.filter(x=>x.div==='serve'&&x.status==='review').length||null)}
+    ${navItem('serve','uitgenodigd','Uitgenodigd',null)}
+
+    <div class="sidebar-section">Stage 🎬</div>
+    ${navItem('stage',null,'Alle Stage',c.stage)}
+    ${navItem('stage','review','Review',candidates.filter(x=>x.div==='stage'&&x.status==='review').length||null)}
+    ${navItem('stage','uitgenodigd','Uitgenodigd',null)}
+
+    <div class="sidebar-bottom">
+      <button class="nav-item${activeTab==='sessies'?' active':''}" onclick="activeTab='sessies';render()">
+        <span class="nav-icon">📅</span> Sessies beheren
+      </button>
+      <button class="nav-item" onclick="logout()">
+        <span class="nav-icon">🚪</span> Uitloggen
+      </button>
+    </div>
+  </div>`;
+}
+
+function renderTopbar(){
+  const c=counts();
+  return `<div class="topbar">
+    <div>
+      <div style="font-weight:700;font-size:15px">${activeTab==='sessies'?'Sessies beheren':getViewTitle()}</div>
+      ${activeTab!=='sessies'?`<div style="font-size:12px;color:var(--text3)">${filteredCandidates().length} kandidaat${filteredCandidates().length===1?'':'en'}</div>`:''}
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      ${activeTab!=='sessies'?`
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input placeholder="Zoek naam, e-mail…" value="${e(search)}" oninput="search=this.value;render()">
+      </div>`:''}
+      <button class="btn btn-sm" onclick="fetchData()">↻ Vernieuwen</button>
+    </div>
+  </div>`;
+}
+
+function getViewTitle(){
+  let t='';
+  if(activeDiv)t+=DIV_META[activeDiv]?.label+' · ';
+  if(activeStatus)t+=STATUS_META[activeStatus]?.label;
+  else t+='Alle kandidaten';
+  return t;
+}
+
+function setFilter(div,status){
+  activeDiv=div||null;
+  activeStatus=status||null;
+  activeTab='kandidaten';
+  render();
+}
+
+function renderKandidaten(){
+  const list=filteredCandidates();
+  const c=counts();
+
+  const statsHtml=(!activeDiv&&!activeStatus)?`
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num">${c.total}</div><div class="stat-label">Totaal</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--warn-text)">${c.review}</div><div class="stat-label">In review</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--success-text)">${c.uitgenodigd}</div><div class="stat-label">Uitgenodigd</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--danger-text)">${c.afgewezen}</div><div class="stat-label">Afgewezen</div></div>
+    </div>`:'';
+
+  const listHtml=list.length===0
+    ?`<div class="empty-state"><div class="empty-icon">🔍</div>Geen kandidaten gevonden.</div>`
+    :list.map(c=>{
+      const dm=DIV_META[c.div]||{};
+      const sm=STATUS_META[c.status]||{label:c.status,cls:''};
+      return `<div class="cand-row" onclick="openModal('${c.id}')">
+        <div class="avatar avatar-${c.div||'smile'}">${initials(c.fn,c.ln)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px">${e(c.fn)} ${e(c.ln)}</div>
+          <div style="font-size:12px;color:var(--text2)">${e(c.city)} · ${new Date(c.submittedAt||Date.now()).toLocaleDateString('nl-BE')}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <span class="badge badge-div-${c.div}">${dm.icon||''} ${dm.label||c.div}</span>
+          <span class="badge ${sm.cls}">${sm.label}</span>
+          <span style="color:var(--text3);font-size:16px">›</span>
+        </div>
+      </div>`;
+    }).join('');
+
+  return statsHtml+`<div class="card">${listHtml}</div>`;
+}
+
+function renderSessions(){
+  const smileSess=sessions.filter(s=>s.div==='smile');
+  const serveSess=sessions.filter(s=>s.div==='serve');
+  const stageSess=sessions.filter(s=>s.div==='stage');
+
+  function sessSection(div,list){
+    const dm=DIV_META[div];
+    return `
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-weight:600;font-size:14px">${dm.icon} ${dm.label}</div>
+          <button class="btn btn-sm btn-primary" onclick="openAddSession('${div}')">+ Sessie toevoegen</button>
+        </div>
+        ${list.length===0
+          ?`<div style="color:var(--text3);font-size:13px;padding:14px;background:var(--bg3);border-radius:9px;text-align:center">Nog geen sessies gepland.</div>`
+          :list.map(s=>{
+            const pct=s.capacity>0?Math.round((s.booked/s.capacity)*100):0;
+            const isFull=s.booked>=s.capacity;
+            return `<div class="session-row">
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600">${e(s.date)} · ${e(s.time)} <span style="font-weight:400;color:var(--text2);">(${s.duration||30} min)</span></div>
+                <div style="font-size:12px;color:${isFull?'var(--danger-text)':'var(--text2)'};margin-top:2px">
+                  ${s.booked}/${s.capacity} ingeschreven${isFull?' · Volzet':''}
+                </div>
+              </div>
+              ${s.capacity>1?`<div style="width:80px">
+                <div class="session-bar"><div class="session-bar-fill" style="width:${pct}%"></div></div>
+              </div>`:''}
+              <button class="btn btn-sm btn-ghost btn-icon" onclick="deleteSession('${s.id}')" title="Verwijderen">🗑️</button>
+            </div>`;
+          }).join('')}
+      </div>`;
+  }
+
+  return `
+    <div style="max-width:640px">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:20px">
+        Beheer hier de beschikbare momenten per divisie. Kandidaten kiezen een sessie tijdens de inschrijving.
+        Smile = 1op1 gesprek (30 min) · Serve = groepsopleiding (1,5u) · Stage = 1op1 gesprek (30 min)
+      </p>
+      ${sessSection('smile',smileSess)}
+      ${sessSection('serve',serveSess)}
+      ${sessSection('stage',stageSess)}
+    </div>`;
+}
+
+// ---- MODALS ----
+function openModal(id){
+  selId=id;
+  const c=candidates.find(x=>x.id===id);
+  if(!c)return;
+  const dm=DIV_META[c.div]||{};
+  const sm=STATUS_META[c.status]||{label:c.status,cls:''};
+  const langRows=Object.entries(c.langs||{}).filter(([,v])=>v&&v!=='Geen').map(([l,v])=>`<tr><td>${l}</td><td>${v}</td></tr>`).join('');
+  const sess=sessions.find(s=>s.id===c.sessionId);
+
+  const actionHtml=c.status==='review'?`
+    <div class="divider"></div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:10px">Beslissing</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-success btn-sm" onclick="openInvite('${c.id}')">✉️ Uitnodigen</button>
+      <button class="btn btn-danger btn-sm" onclick="document.getElementById('reject-area').style.display='block'">✗ Afwijzen</button>
+    </div>
+    <div class="reject-area" id="reject-area">
+      <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:6px">Interne reden (niet zichtbaar voor kandidaat)</label>
+      <textarea id="reject-reason" placeholder="bv. te weinig ervaring, profiel past niet…" style="margin-bottom:10px"></textarea>
+      <button class="btn btn-danger btn-sm" onclick="confirmReject('${c.id}')">Bevestig afwijzing</button>
+    </div>`
+  :c.status==='uitgenodigd'?`
+    <div class="divider"></div>
+    <div class="info-box">✉️ Uitnodigingsmail verstuurd · ${dm.label}${sess?` · ${e(sess.date)} om ${e(sess.time)}`:''}
+    </div>`
+  :c.status==='afgewezen'?`
+    <div class="divider"></div>
+    <div class="warn-box">
+      <div style="font-weight:600;margin-bottom:4px">Reden afwijzing</div>
+      ${e(c.rejectionReason)||'Geen reden opgegeven'}
+    </div>`:'' ;
+
+  showModalHtml(`
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="avatar avatar-${c.div}" style="width:44px;height:44px;font-size:14px">${initials(c.fn,c.ln)}</div>
+        <div>
+          <div style="font-weight:700;font-size:17px">${e(c.fn)} ${e(c.ln)}</div>
+          <div style="display:flex;gap:6px;margin-top:3px">
+            <span class="badge badge-div-${c.div}">${dm.icon} ${dm.label}</span>
+            <span class="badge ${sm.cls}">${sm.label}</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="closeModal()">✕</button>
+    </div>
+
+    <table class="detail-table">
+      <tr><td>E-mail</td><td>${e(c.email)}</td></tr>
+      <tr><td>GSM</td><td>${e(c.gsm)}</td></tr>
+      <tr><td>Geboren</td><td>${e(c.dob)||'—'}</td></tr>
+      <tr><td>Geslacht</td><td>${e(c.gender)||'—'}</td></tr>
+      <tr><td>Woonplaats</td><td>${e(c.city)}${c.nat?' ('+e(c.nat)+')':''}</td></tr>
+      <tr><td>Diploma</td><td>${e(c.diploma)||'—'}</td></tr>
+      <tr><td>Studierichting</td><td>${e(c.studyfield)||'—'}</td></tr>
+      <tr><td>Laatste job</td><td>${e(c.lastjob)||'—'}</td></tr>
+      <tr><td>Ervaring</td><td style="white-space:pre-wrap">${e(c.experience)||'—'}</td></tr>
+      <tr><td>Rijbewijs</td><td>${e(c.license)||'—'}</td></tr>
+      <tr><td>Eigen wagen</td><td>${e(c.car)||'—'}</td></tr>
+      <tr><td>Tatoeages</td><td>${e(c.tattoo)||'—'}</td></tr>
+      <tr><td>Motivatie</td><td style="white-space:pre-wrap">${e(c.motivation)||'—'}</td></tr>
+      ${langRows?`<tr><td>Talen</td><td><table style="font-size:12px">${langRows}</table></td></tr>`:''}
+      <tr><td>Foto</td><td>${c.photoUrl?`<a href="${e(c.photoUrl)}" target="_blank" style="color:var(--bm-red)">Bekijk foto</a>`:e(c.photoName)||'—'}</td></tr>
+      <tr><td>CV</td><td>${c.cvUrl?`<a href="${e(c.cvUrl)}" target="_blank" style="color:var(--bm-red)">Bekijk CV</a>`:e(c.cvName)||'—'}</td></tr>
+      <tr><td>Bron</td><td>${e(c.source)||'—'}</td></tr>
+    </table>
+
+    ${sess?`
+    <div class="divider"></div>
+    <div style="font-weight:600;font-size:13px;margin-bottom:8px">📅 Gekozen sessie</div>
+    <table class="detail-table">
+      <tr><td>Divisie</td><td>${dm.label}</td></tr>
+      <tr><td>Datum</td><td>${e(sess.date)}</td></tr>
+      <tr><td>Tijdstip</td><td>${e(sess.time)}</td></tr>
+    </table>`:''}
+
+    ${actionHtml}
+  `);
+}
+
+function openInvite(id){
+  const c=candidates.find(x=>x.id===id);
+  if(!c)return;
+  const divSess=sessions.filter(s=>s.div===c.div&&(s.div==='smile'||(s.booked<s.capacity)));
+
+  showModalHtml(`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-weight:700;font-size:16px">Uitnodigen: ${e(c.fn)} ${e(c.ln)}</div>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="openModal('${id}')">✕</button>
+    </div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">
+      Kies een sessie voor deze kandidaat. Ze ontvangen een uitnodigingsmail met alle details.
+    </p>
+    ${divSess.length===0
+      ?`<div style="color:var(--text3);font-size:13px;padding:20px;text-align:center;background:var(--bg3);border-radius:9px">
+          Geen beschikbare sessies voor ${DIV_META[c.div]?.label}. <br>
+          <button class="btn btn-sm btn-primary" style="margin-top:10px" onclick="activeTab='sessies';closeModal();render()">Sessie aanmaken →</button>
+        </div>`
+      :`<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        ${divSess.map(s=>{
+          const spots=s.capacity-s.booked;
+          return `<div class="session-row" style="cursor:pointer" onclick="confirmInvite('${id}','${s.id}')">
+            <div style="flex:1">
+              <div style="font-weight:600">${e(s.date)} · ${e(s.time)}</div>
+              ${s.capacity>1?`<div style="font-size:12px;color:var(--text2)">${spots} plaats${spots===1?'':'en'} vrij</div>`:''}
+            </div>
+            <button class="btn btn-success btn-sm">Selecteer</button>
+          </div>`;
+        }).join('')}
+      </div>`}
+  `);
+}
+
+function confirmInvite(candId,sessId){
+  updateStatus(candId,'uitgenodigd','',sessId);
+}
+
+function confirmReject(id){
+  const reason=document.getElementById('reject-reason')?.value||'';
+  updateStatus(id,'afgewezen',reason,'');
+}
+
+function openAddSession(div){
+  const dm=DIV_META[div];
+  const isServe=div==='serve';
+  showModalHtml(`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-weight:700;font-size:16px">${dm.icon} Sessie toevoegen · ${dm.label}</div>
+      <button class="btn btn-ghost btn-sm btn-icon" onclick="closeModal()">✕</button>
+    </div>
+    <div class="field">
+      <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Datum</label>
+      <input type="date" id="sess-date" min="${new Date().toISOString().slice(0,10)}">
+    </div>
+    <div class="field">
+      <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">Tijdstip</label>
+      <input type="time" id="sess-time">
+    </div>
+    <div class="field">
+      <label style="font-size:12px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px">
+        ${isServe?'Maximum aantal deelnemers':'Aantal plaatsen (1 voor 1op1)'}
+      </label>
+      <input type="number" id="sess-cap" min="1" max="${isServe?50:1}" value="${isServe?10:1}">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-sm" onclick="closeModal()">Annuleren</button>
+      <button class="btn btn-primary btn-sm" onclick="saveSession('${div}')">Sessie opslaan</button>
+    </div>
+  `);
+}
+
+function saveSession(div){
+  const date=document.getElementById('sess-date')?.value;
+  const time=document.getElementById('sess-time')?.value;
+  const cap=document.getElementById('sess-cap')?.value;
+  if(!date||!time||!cap){showToast('Vul alle velden in');return;}
+  const dateLabel=new Date(date).toLocaleDateString('nl-BE',{weekday:'short',day:'numeric',month:'short'});
+  const duration=div==='serve'?90:30;
+  addSession({div,date:dateLabel,time,capacity:parseInt(cap),duration});
+  closeModal();
+}
+
+function showModalHtml(innerHtml){
+  let c=document.getElementById('modal-container');
+  if(!c){c=document.createElement('div');c.id='modal-container';document.body.appendChild(c);}
+  c.innerHTML=`<div class="modal-backdrop" onclick="if(event.target===this)closeModal()"><div class="modal">${innerHtml}</div></div>`;
+}
+
+function closeModal(){
+  const c=document.getElementById('modal-container');
+  if(c)c.innerHTML='';
+  selId=null;
+}
+
+function logout(){
+  sessionStorage.removeItem('bm_auth');
+  loggedIn=false;
+  candidates=[];sessions=[];
+  render();
+}
+
+// ---- DEMO DATA ----
+const DEMO_CANDIDATES=[
+  {id:'d1',fn:'Emma',ln:'Claes',dob:'2001-05-14',gender:'Vrouw',email:'emma.claes@gmail.com',gsm:'+32 478 12 34 56',city:'Gent',nat:'Belgisch',diploma:'Bachelor',studyfield:'Communicatie',lastjob:'Receptioniste hotel',experience:'2 jaar ervaring als receptioniste bij Marriott Gent',civil:'Alleenstaand',kids:'Geen kinderen',license:'B',car:'Ja',langs:{Nederlands:'Vloeiend',Frans:'Goed',Engels:'Goed',Duits:'Geen'},tattoo:'Nee',div:'smile',motivation:'Ik wil graag bijdragen aan een professionele gastbeleving bij grote evenementen.',source:'Instagram / Facebook',photoName:'emma_foto.jpg',cvName:'emma_cv.pdf',submittedAt:'2025-06-20T10:23:00Z',status:'review',sessionId:'',rejectionReason:''},
+  {id:'d2',fn:'Lars',ln:'De Moor',dob:'1999-11-03',gender:'Man',email:'lars.demoor@hotmail.com',gsm:'+32 489 65 43 21',city:'Antwerpen',nat:'Belgisch',diploma:'Hoger secundair',studyfield:'Horeca',lastjob:'Ober bij Brasserie De Koninck',experience:'3 jaar bediening in drukke brasserie, inclusief banqueting',civil:'Alleenstaand',kids:'Geen kinderen',license:'B',car:'Nee',langs:{Nederlands:'Vloeiend',Frans:'Basis',Engels:'Goed',Duits:'Geen'},tattoo:'Ja (bedekbaar)',div:'serve',motivation:'Catering en hospitality zijn mijn passie. Ik werk graag in teamverband bij grote events.',source:'Via een vriend(in)',photoName:'lars_foto.jpg',cvName:'',submittedAt:'2025-06-21T09:10:00Z',status:'review',sessionId:'',rejectionReason:''},
+  {id:'d3',fn:'Sophie',ln:'Martens',dob:'2003-02-28',gender:'Vrouw',email:'sophie.martens@student.be',gsm:'+32 475 99 88 77',city:'Brussel',nat:'Belgisch',diploma:'Hoger secundair',studyfield:'Audiovisuele kunsten',lastjob:'Stage bij productiehuis',experience:'Stage van 6 maanden backstage bij een productiehuis in Brussel',civil:'Alleenstaand',kids:'Geen kinderen',license:'B',car:'Nee',langs:{Nederlands:'Vloeiend',Frans:'Vloeiend',Engels:'Goed',Duits:'Geen'},tattoo:'Ja (bedekbaar)',div:'stage',motivation:'Ik droom ervan om deel uit te maken van een creatief productieteam bij grote events.',source:'School of instelling',photoName:'sophie_foto.jpg',cvName:'sophie_cv.pdf',submittedAt:'2025-06-21T14:45:00Z',status:'uitgenodigd',sessionId:'s2',rejectionReason:''},
+  {id:'d4',fn:'Niels',ln:'Bogaert',dob:'1998-07-19',gender:'Man',email:'niels.bogaert@gmail.com',gsm:'+32 492 11 22 33',city:'Mechelen',nat:'Belgisch',diploma:'Bachelor',studyfield:'Eventmanagement',lastjob:'Coördinator bij eventbureau',experience:'4 jaar ervaring als eventcoördinator, zowel bij kleine als grote evenementen',civil:'Samenwonend',kids:'Geen kinderen',license:'B + aanhangwagen',car:'Ja',langs:{Nederlands:'Vloeiend',Frans:'Goed',Engels:'Vloeiend',Duits:'Basis'},tattoo:'Nee',div:'smile',motivation:'Ik wil mijn ervaring inzetten bij een dynamisch team zoals Beyond Mars.',source:'Google',photoName:'niels_foto.jpg',cvName:'niels_cv.pdf',submittedAt:'2025-06-19T11:00:00Z',status:'afgewezen',sessionId:'',rejectionReason:'Profiel te senior voor huidige openstaande functies.'}
+];
+const DEMO_SESSIONS=[
+  {id:'s1',div:'smile',date:'Ma 30 jun',time:'09:00',capacity:1,booked:0,duration:30},
+  {id:'s2',div:'stage',date:'Di 1 jul',time:'10:30',capacity:1,booked:1,duration:30},
+  {id:'s3',div:'serve',date:'Wo 2 jul',time:'09:00',capacity:10,booked:3,duration:90},
+  {id:'s4',div:'serve',date:'Vr 4 jul',time:'13:30',capacity:10,booked:10,duration:90},
+];
+
+// Init
+if(loggedIn)fetchData();
+else render();
+</script>
+</body>
+</html>
