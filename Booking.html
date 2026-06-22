@@ -61,12 +61,27 @@ function getParams(){
   div=p.get('div')||'';
 }
 
+
+function fetchJsonp(url){
+  return new Promise((resolve,reject)=>{
+    const cb='cb_'+Date.now();
+    const script=document.createElement('script');
+    script.src=url+'&callback='+cb;
+    window[cb]=function(data){resolve(data);delete window[cb];script.remove();};
+    script.onerror=()=>{
+      // fallback: try regular fetch
+      fetch(url).then(r=>r.json()).then(resolve).catch(reject);
+    };
+    document.head.appendChild(script);
+    setTimeout(()=>reject(new Error('timeout')),8000);
+  });
+}
+
 async function loadSessions(){
   getParams();
   if(!candId||!div){state='error';render();return;}
   try{
     if(APPS_SCRIPT_URL==='JOUW_APPS_SCRIPT_URL_HIER'){
-      // Demo
       await new Promise(r=>setTimeout(r,600));
       const isServe=div==='serve';
       sessions=[
@@ -76,8 +91,8 @@ async function loadSessions(){
         {id:'s4',date:'Donderdag 3 juli',time:'09:00',capacity:isServe?10:1,booked:isServe?2:0,duration:isServe?90:30},
       ];
     } else {
-      const r=await fetch(`${APPS_SCRIPT_URL}?action=getSessions&div=${div}`);
-      const d=await r.json();
+      // Use script tag to bypass CORS for GET request
+      const d = await fetchJsonp(`${APPS_SCRIPT_URL}?action=getSessions&div=${div}`);
       sessions=d.sessions||[];
     }
     state='choose';
@@ -90,9 +105,7 @@ async function bookSlot(){
   submitting=true;render();
   try{
     if(APPS_SCRIPT_URL!=='JOUW_APPS_SCRIPT_URL_HIER'){
-      await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify({
-        action:'bookSession',candId,sessionId:selected
-      })});
+      await fetch(APPS_SCRIPT_URL,{method:'POST',mode:'no-cors',body:JSON.stringify({action:'bookSession',candId,sessionId:selected})});
     } else {
       await new Promise(r=>setTimeout(r,800));
     }
