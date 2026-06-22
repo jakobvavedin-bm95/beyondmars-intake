@@ -46,20 +46,6 @@ label.field-label{font-size:13px;color:var(--text2);display:block;margin-bottom:
 .radio-opt.selected{border-color:var(--bm-red);background:#FFF5F5;color:var(--bm-red);font-weight:500}
 .radio-opt input[type=radio]{display:none}
 .lang-grid{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:8px 12px;margin-top:8px}
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.cal-day-name{text-align:center;font-size:11px;color:var(--text3);padding:4px 0;font-weight:500}
-.cal-day{text-align:center;padding:8px 4px;border-radius:7px;font-size:13px;cursor:pointer;border:1px solid transparent;transition:all .12s}
-.cal-day:hover{background:var(--bg3)}
-.cal-day.available{border-color:var(--border)}
-.cal-day.selected{background:var(--bm-red);color:#fff;border-color:var(--bm-red)}
-.cal-day.disabled{color:var(--text3);cursor:default;opacity:.4}
-.cal-day.full{color:var(--text3);cursor:default;background:var(--bg3);border-color:var(--border)}
-.time-slot{padding:8px 16px;border:1px solid var(--border);border-radius:8px;font-size:13px;cursor:pointer;transition:all .12s;display:flex;flex-direction:column;gap:2px}
-.time-slot:hover{background:var(--bg3)}
-.time-slot.selected{background:var(--bm-red);color:#fff;border-color:var(--bm-red)}
-.time-slot.full{opacity:.4;cursor:not-allowed;background:var(--bg3)}
-.time-slots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:10px}
 .upload-zone{border:2px dashed var(--border);border-radius:10px;padding:28px 20px;text-align:center;cursor:pointer;background:var(--bg3);transition:border-color .15s}
 .upload-zone:hover{border-color:var(--bm-red)}
 .upload-zone.has-file{border-color:var(--bm-red);background:#FFF5F5}
@@ -69,7 +55,6 @@ label.field-label{font-size:13px;color:var(--text2);display:block;margin-bottom:
 .form-header .logo{display:block;margin-bottom:10px;font-size:17px;font-weight:700;color:var(--bm-red)}
 .form-header h1{font-size:21px;font-weight:700;margin-bottom:6px}
 .form-header p{font-size:14px;color:var(--text2)}
-.success-screen{text-align:center;padding:50px 20px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--bm-navy);color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:500;opacity:0;transition:opacity .3s;pointer-events:none;z-index:200;white-space:nowrap}
 .toast.show{opacity:1}
 .div-card{border:1px solid var(--border);border-radius:12px;padding:16px 18px;cursor:pointer;transition:all .15s;display:flex;gap:14px;align-items:flex-start}
@@ -81,8 +66,6 @@ label.field-label{font-size:13px;color:var(--text2);display:block;margin-bottom:
 .div-card.selected .div-title{color:var(--bm-red)}
 .spinner{width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
 @keyframes spin{to{transform:rotate(360deg)}}
-.session-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:var(--info-bg);color:var(--info-text)}
-.session-badge.full{background:var(--bg3);color:var(--text3)}
 </style>
 </head>
 <body>
@@ -93,16 +76,11 @@ label.field-label{font-size:13px;color:var(--text2);display:block;margin-bottom:
 <div class="toast" id="toast"></div>
 
 <script>
-// ============================================================
-// CONFIG — pas deze URL aan na het deployen van Apps Script
-// ============================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/beyondmars.be/s/AKfycbxpYzW5RgqBnaGk5hBKwSVOaTDeE8B3KH0RtJZlElRT0A4tH-9qUObGeT0H3Zzxys7Oeg/exec';
-// ============================================================
+const APPS_SCRIPT_URL = 'JOUW_APPS_SCRIPT_URL_HIER';
 
 const LANGS=['Nederlands','Frans','Engels','Duits'];
 const LEVELS=['Geen','Basis','Goed','Vloeiend'];
 const DIPLOMAS=['Geen diploma','Lager onderwijs','Lager secundair','Hoger secundair','Bachelor','Master','Andere'];
-const DAY_NAMES=['Ma','Di','Wo','Do','Vr','Za','Zo'];
 
 const DIVISIONS=[
   {id:'smile',label:'Beyond the Smile',icon:'😊',desc:'Gastheer/gastvrouw, receptie, eventbegeleiding. Je bent het gezicht van het evenement.'},
@@ -112,31 +90,15 @@ const DIVISIONS=[
 
 let step=1;
 let fd={};
-let sessions=[];
-let selSession=null;
-let calMonth=new Date().getMonth();
-let calYear=new Date().getFullYear();
 let submitting=false;
 
 function e(s){return(s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
 
-async function loadSessions(){
-  if(!fd.div)return;
-  try{
-    const r=await fetch(`${APPS_SCRIPT_URL}?action=getSessions&div=${fd.div}`);
-    const d=await r.json();
-    sessions=d.sessions||[];
-  }catch(err){
-    sessions=[];
-  }
-  render();
-}
-
 function stepBar(){
-  const labels=['Basisinfo','Opleiding','Praktisch','Motivatie','Foto & CV','Afspraak'];
+  const total=5;
   let h='<div class="step-bar">';
-  for(let i=1;i<=6;i++){
+  for(let i=1;i<=total;i++){
     const cls=i<step?'done':i===step?'active':'';
     if(i>1)h+=`<div class="step-line${i<=step?' done':''}"></div>`;
     h+=`<div class="step-dot ${cls}">${i<step?'✓':i}</div>`;
@@ -155,7 +117,6 @@ function validateStep(){
   if(step===1)return fd.fn&&fd.ln&&fd.dob&&fd.email&&fd.gsm&&fd.city&&fd.privacy;
   if(step===4)return fd.div&&(fd.motivation||'').length>=10;
   if(step===5)return !!fd.photoName;
-  if(step===6)return !!selSession;
   return true;
 }
 
@@ -194,7 +155,7 @@ function renderForm(){
 
   if(step===2){
     body=`
-    <div class="form-header"><h1>Opleiding &amp; ervaring</h1><p>Stap 2 van 6</p></div>
+    <div class="form-header"><h1>Opleiding &amp; ervaring</h1><p>Stap 2 van 5</p></div>
     ${stepBar()}
     <div class="field"><label class="field-label">Hoogst behaald diploma</label>
       <select onchange="fd.diploma=this.value">${DIPLOMAS.map(d=>`<option${fd.diploma===d?' selected':''}>${d}</option>`).join('')}</select>
@@ -208,7 +169,7 @@ function renderForm(){
 
   if(step===3){
     body=`
-    <div class="form-header"><h1>Praktisch</h1><p>Stap 3 van 6</p></div>
+    <div class="form-header"><h1>Praktisch</h1><p>Stap 3 van 5</p></div>
     ${stepBar()}
     <div class="field"><label class="field-label">Rijbewijs</label>${radioGroup('lic',['Geen','B','B + aanhangwagen','C/D'],fd.license,'setLicense')}</div>
     <div class="field"><label class="field-label">Eigen wagen</label>${radioGroup('car',['Ja','Nee'],fd.car,'setCar')}</div>
@@ -226,7 +187,7 @@ function renderForm(){
   if(step===4){
     const motLen=(fd.motivation||'').length;
     body=`
-    <div class="form-header"><h1>Motivatie &amp; voorkeur</h1><p>Stap 4 van 6</p></div>
+    <div class="form-header"><h1>Motivatie &amp; voorkeur</h1><p>Stap 4 van 5</p></div>
     ${stepBar()}
     <div class="field">
       <label class="field-label">In welke divisie wil je werken? *</label>
@@ -255,7 +216,7 @@ function renderForm(){
 
   if(step===5){
     body=`
-    <div class="form-header"><h1>Foto &amp; CV</h1><p>Stap 5 van 6</p></div>
+    <div class="form-header"><h1>Foto &amp; CV</h1><p>Stap 5 van 5</p></div>
     ${stepBar()}
     <div class="field">
       <label class="field-label">Profielfoto *</label>
@@ -278,59 +239,8 @@ function renderForm(){
     </div>`;
   }
 
-  if(step===6){
-    const divLabel=DIVISIONS.find(d=>d.id===fd.div)?.label||'';
-    const isServe=fd.div==='serve';
-
-    let sessionsHtml='';
-    if(sessions.length===0){
-      sessionsHtml=`<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;background:var(--bg3);border-radius:9px">
-        Momenteel zijn er geen beschikbare sessies. We nemen contact met je op.
-      </div>`;
-    } else {
-      sessionsHtml=`<div class="time-slots-grid">
-        ${sessions.map(s=>{
-          const isFull=s.booked>=s.capacity;
-          const isSel=selSession===s.id;
-          const spots=s.capacity-s.booked;
-          return `<div class="time-slot${isSel?' selected':''}${isFull?' full':''}" onclick="${!isFull?`selSession='${s.id}';render()`:''}" title="${isFull?'Volzet':''}">
-            <span style="font-weight:600">${e(s.date)} · ${e(s.time)}</span>
-            ${isServe?`<span style="font-size:11px;opacity:.8">${isFull?'Volzet':`${spots} plaats${spots===1?'':'en'} vrij`}</span>`:''}
-          </div>`;
-        }).join('')}
-      </div>`;
-    }
-
-    body=`
-    <div class="form-header"><h1>Kies een moment</h1><p>Stap 6 van 6 · ${divLabel}</p></div>
-    ${stepBar()}
-    <div class="field">
-      <label class="field-label">${isServe?'Kies een groepssessie (1,5u)':'Kies een tijdslot (30 min)'}</label>
-      <p style="font-size:12px;color:var(--text3);margin-bottom:10px">
-        ${isServe
-          ?'Selecteer een opleiding. Sessies met vrije plaatsen worden getoond.'
-          :'Selecteer een moment voor je persoonlijk gesprek.'}
-      </p>
-      ${sessions.length>0?sessionsHtml:`<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px">
-        <div style="font-size:28px;margin-bottom:8px">⏳</div>
-        Beschikbare momenten worden geladen…
-      </div>`}
-    </div>`;
-
-    if(sessions.length===0 && APPS_SCRIPT_URL==='JOUW_APPS_SCRIPT_URL_HIER'){
-      // demo mode — toon dummy slots
-      sessions=[
-        {id:'s1',date:'Ma 30 jun',time:'09:00',capacity:1,booked:0},
-        {id:'s2',date:'Di 1 jul',time:'10:30',capacity:isServe?10:1,booked:isServe?3:0},
-        {id:'s3',date:'Wo 2 jul',time:'14:00',capacity:isServe?10:1,booked:isServe?10:0},
-        {id:'s4',date:'Do 3 jul',time:'15:30',capacity:isServe?10:1,booked:isServe?7:0},
-      ];
-      render();return;
-    }
-  }
-
   const ok=validateStep();
-  const isLast=step===6;
+  const isLast=step===5;
 
   document.getElementById('app-content').innerHTML=`
     <div class="card">
@@ -338,30 +248,21 @@ function renderForm(){
       <div class="divider"></div>
       <div style="display:flex;justify-content:space-between;gap:10px">
         ${step>1?`<button class="btn" onclick="prevStep()">&#8592; Vorige</button>`:`<span></span>`}
-        <button class="btn btn-primary" id="next-btn" onclick="${isLast?'submitForm()':'nextStep()'}" ${!ok?'disabled style="opacity:.5;cursor:not-allowed"':''}>
-          ${isLast
-            ?`${submitting?'<span class="spinner"></span> Bezig…':'Aanmelding versturen &#10148;'}`
-            :'Volgende &#8594;'}
+        <button class="btn btn-primary" onclick="${isLast?'submitForm()':'nextStep()'}" ${!ok?'disabled style="opacity:.5;cursor:not-allowed"':''}>
+          ${isLast?(submitting?'<span class="spinner"></span> Bezig…':'Aanmelding versturen &#10148;'):'Volgende &#8594;'}
         </button>
       </div>
     </div>`;
 }
 
 function prevStep(){step--;render();}
-function nextStep(){
-  if(!validateStep()||step>=6)return;
-  step++;
-  if(step===6)loadSessions();
-  else render();
-}
+function nextStep(){if(validateStep()&&step<5){step++;render();}}
 
 async function submitForm(){
   if(submitting)return;
   submitting=true;render();
-
   const langs={};
   LANGS.forEach((l,i)=>{langs[l]=(fd.langs&&fd.langs[i])||'Geen';});
-
   const payload={
     action:'submit',
     fn:fd.fn,ln:fd.ln,dob:fd.dob||'',gender:fd.gender||'',
@@ -372,18 +273,15 @@ async function submitForm(){
     license:fd.license||'',car:fd.car||'',
     langs:JSON.stringify(langs),tattoo:fd.tattoo||'',
     div:fd.div||'',motivation:fd.motivation||'',source:fd.source||'',
-    photoName:fd.photoName||'',cvName:fd.cvName||'',
-    photoData:fd.photoData||'',
-    sessionId:selSession||''
+    photoName:fd.photoName||'',photoData:fd.photoData||'',
+    cvName:fd.cvName||''
   };
-
   try{
     if(APPS_SCRIPT_URL==='JOUW_APPS_SCRIPT_URL_HIER'){
-      // Demo mode
-      await new Promise(r=>setTimeout(r,1200));
-      renderSuccess();return;
+      await new Promise(r=>setTimeout(r,1000));
+    } else {
+      await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
     }
-    await fetch(APPS_SCRIPT_URL,{method:'POST',body:JSON.stringify(payload)});
     renderSuccess();
   }catch(err){
     submitting=false;
@@ -399,10 +297,10 @@ function renderSuccess(){
       <div style="font-size:56px;margin-bottom:16px">✅</div>
       <h2 style="font-size:22px;font-weight:700;margin-bottom:10px">Aanmelding ontvangen!</h2>
       <p style="color:var(--text2);font-size:14px;max-width:380px;margin:0 auto 12px">
-        Bedankt ${e(fd.fn)}! We bekijken je dossier voor <strong>${divLabel}</strong> en laten je weten via e-mail of je uitgenodigd wordt.
+        Bedankt ${e(fd.fn)}! We bekijken je dossier voor <strong>${divLabel}</strong> en nemen zo snel mogelijk contact met je op.
       </p>
       <p style="color:var(--text3);font-size:13px;max-width:360px;margin:0 auto">
-        Controleer ook je spamfolder. Je ontvangt een bevestigingsmail op <strong>${e(fd.email)}</strong>.
+        Je ontvangt een bevestigingsmail op <strong>${e(fd.email)}</strong>. Controleer ook je spamfolder.
       </p>
     </div>`;
 }
@@ -411,11 +309,10 @@ function handlePhoto(input){
   const file=input.files[0];if(!file)return;
   fd.photoName=file.name;
   const reader=new FileReader();
-  reader.onload=e=>{fd.photoData=e.target.result;render();};
+  reader.onload=ev=>{fd.photoData=ev.target.result;render();};
   reader.readAsDataURL(file);
 }
 function handleCV(input){fd.cvName=input.files[0]?.name;render();}
-
 function setGender(v){fd.gender=v;render();}
 function setCivil(v){fd.civil=v;render();}
 function setKids(v){fd.kids=v;render();}
@@ -424,10 +321,9 @@ function setCar(v){fd.car=v;render();}
 function setTattoo(v){fd.tattoo=v;render();}
 function setDiv(v){fd.div=v;render();}
 function setLang(i,v){if(!fd.langs)fd.langs=LANGS.map(()=>'Geen');fd.langs[i]=v;}
-
-renderForm();
-
 function render(){renderForm();}
+
+render();
 </script>
 </body>
 </html>
